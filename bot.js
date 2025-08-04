@@ -1,16 +1,20 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 
-const token = '8176883642:AAEmqGO-CEIRCsrvGvVYowsTCdlwPHZaD6w';
+const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
 // Файл статистики
 const statsFile = 'stats.json';
 
-// Загружаем статистику, если есть
+// Загружаем статистику, если есть, иначе создаём начальный объект
 let stats = { startCount: 0 };
 if (fs.existsSync(statsFile)) {
-  stats = JSON.parse(fs.readFileSync(statsFile));
+  try {
+    stats = JSON.parse(fs.readFileSync(statsFile));
+  } catch (e) {
+    console.error('Ошибка чтения stats.json, используем стартовые данные');
+  }
 }
 
 // Список книг со ссылками
@@ -21,33 +25,4 @@ const books = [
   { title: '📕 "Go Programming Language"', link: 'https://codelibrary.info/books/go' },
 ];
 
-// Команда /start
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-
-  // Обновляем счётчик
-  stats.startCount += 1;
-  fs.writeFileSync(statsFile, JSON.stringify(stats));
-
-  const caption = `🚀 *Твоя карьера стартует здесь!*
-
-💻 Канал для тех, кто хочет влиться в мир *IT* и зарабатывать *мозгом*.
-🧠 Никакого скама — только чёткие ответы на заданные вопросы!
-
-👉 [Подписаться на канал](https://t.me/codecrew0)
-
-📚 *5 лучших книг по программированию:*
-${books.map(book => `- ${book.title} — [Скачать](${book.link})`).join('\n')}
-  `;
-
-  bot.sendPhoto(chatId, fs.createReadStream('photo.jpg'), {
-    caption,
-    parse_mode: 'Markdown'
-  });
-});
-
-// Команда /stats
-bot.onText(/\/stats/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, `📈 Бот запускали: *${stats.startCount}* раз(а).`, { parse_mode: 'Markdown' });
-});
+// Ком
